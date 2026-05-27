@@ -3,9 +3,12 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile
+
     container_name: mern_proxy
+
     ports:
       - "80:80"
+
     depends_on:
       - client
       - server
@@ -15,35 +18,53 @@ services:
       context: ./client
       dockerfile: Dockerfile
       args:
-        - VITE_BACKEND_URL=
-    container_name: mern_client
+        VITE_BACKEND_URL: http://server:3000
+    ports:
+      - "5173:5173"
+    command: npm run dev -- --host
+    depends_on:
+      - server
+
+
 
   server:
     build:
       context: ./server
       dockerfile: Dockerfile
+
     container_name: mern_server
+
     env_file:
       - ./server/.env
+
     environment:
       - PORT=3000
       - MONGODB_URI=mongodb://mongodb:27017/chatAPP
       - REDIS_URL=redis://redis:6379
+
+    ports:
+      - "3000:3000"
+
     depends_on:
       - mongodb
       - redis
 
   mongodb:
     image: mongo:latest
+
     container_name: mern_mongodb
+
     ports:
-      - "27017:27017" # Exposed to host so you can connect local tools (e.g. Compass)
+      - "27017:27017"
+
     volumes:
       - mongo_data:/data/db
 
   redis:
     image: redis:alpine
+
     container_name: mern_redis
+
     ports:
       - "6379:6379"
 
